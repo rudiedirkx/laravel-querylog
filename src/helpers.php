@@ -79,7 +79,7 @@ function querylog_html() {
 	$mb = number_format(memory_get_peak_usage() / 1e6, 1);
 
 	return "
-		<details style='font-family: monospace'>
+		<details class=\"querylog\" style='font-family: monospace'>
 			<summary>$count queries, $doublesSummary doubles, in $ms ms ($mb MB)</summary>
 			$doublesHtml
 			$allHtml
