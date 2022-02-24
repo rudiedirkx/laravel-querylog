@@ -1,0 +1,19 @@
+{
+    "name": "rdx/laravel-querylog",
+    "type": "library",
+    "autoload": {
+        "psr-4": {
+            "rdx\\querylog\\": "src/"
+        },
+        "files": [
+            "src/helpers.php"
+        ],
+    },
+    "authors": [
+        {
+            "name": "Rudie Dirkx",
+            "email": "github@hotblocks.nl"
+        }
+    ],
+    "require": {}
+}
