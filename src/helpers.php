@@ -17,6 +17,18 @@ function querylog_semidebug() {
 function querylog_maybe_enable() {
 	if (querylog_semidebug()) {
 		\DB::enableQueryLog();
+
+		$GLOBALS['querylog_models'] = [];
+		\Event::listen("eloquent.retrieved: *", function($type, $args) {
+			$model = $args[0];
+			$class = get_class($model);
+			if (!isset($GLOBALS['querylog_models'][$class])) {
+				$GLOBALS['querylog_models'][$class] = 1;
+			}
+			else {
+				$GLOBALS['querylog_models'][$class]++;
+			}
+		});
 	}
 }
 
@@ -47,7 +59,9 @@ function querylog_get() {
 		return $num > 1;
 	});
 
-	return compact('all', 'doubles', 'time');
+	$models = $GLOBALS['querylog_models'] ?? [];
+
+	return compact('all', 'doubles', 'models', 'time');
 }
 
 function querylog_html() {
@@ -74,13 +88,23 @@ function querylog_html() {
 	}
 	$doublesHtml and $doublesHtml = "Doubles:<ul>$doublesHtml</ul>";
 
+	$models = number_format(array_sum($log['models']), 0, '.', '_');
+
+	$modelsHtml = '';
+	arsort($log['models'], SORT_NUMERIC);
+	foreach ($log['models'] as $class => $num) {
+		$modelsHtml .= '<li>' . $class . ' - ' . $num . '</li>';
+	}
+	$modelsHtml and $modelsHtml = "Models:<ul>$modelsHtml</ul>";
+
 	$ms = round($log['time']);
 
 	$mb = number_format(memory_get_peak_usage() / 1e6, 1);
 
 	return "
 		<details class=\"querylog\" style='font-family: monospace'>
-			<summary>$count queries, $doublesSummary doubles, in $ms ms ($mb MB)</summary>
+			<summary>$count queries, $doublesSummary doubles, $models models, in $ms ms ($mb MB)</summary>
+			$modelsHtml
 			$doublesHtml
 			$allHtml
 		</details>
