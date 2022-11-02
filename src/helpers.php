@@ -101,9 +101,11 @@ function querylog_html() {
 
 	$mb = number_format(memory_get_peak_usage() / 1e6, 1);
 
+	$reqTime = isset($_SERVER['REQUEST_TIME_FLOAT']) ? number_format(1000 * (microtime(1) - $_SERVER['REQUEST_TIME_FLOAT']), 0) : '?';
+
 	return "
-		<details class=\"querylog\" style='font-family: monospace'>
-			<summary>$count queries, $doublesSummary doubles, $models models, in $ms ms ($mb MB)</summary>
+		<details class='querylog' style='font-family: monospace'>
+			<summary>$count queries, $doublesSummary doubles, $models models, in $ms ms | $mb MB | req <span id='querylog-request-time'>$reqTime</span> ms</summary>
 			$modelsHtml
 			$doublesHtml
 			$allHtml
