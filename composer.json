@@ -16,5 +16,7 @@
             "email": "github@hotblocks.nl"
         }
     ],
-    "require": {}
+    "require": {
+        "wikimedia/ip-set": "^3.1"
+    }
 }

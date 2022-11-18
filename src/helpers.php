@@ -1,20 +1,23 @@
 <?php
 
-function querylog_semidebug() {
+use Wikimedia\IPSet;
+
+function querylog_semidebug() : bool {
+	static $debug = null;
+	if (isset($debug)) return $debug;
+
 	$ips = config('app.querylog_ips');
-	if (!trim($ips)) return false;
-	if (empty($_SERVER['REMOTE_ADDR'])) return false;
+	if (!trim($ips)) return $debug = false;
+
+	if (empty($_SERVER['REMOTE_ADDR'])) return $debug = false;
+
+	$set = new IPSet(explode(',', $ips));
 
 	$ip = $_SERVER['REMOTE_ADDR'];
-	$regex = '#^' . strtr($ips, ['*' => '\d+', ',' => '|', '.' => '\\.']) . '$#';
-	try {
-		return preg_match($regex, $ip);
-	}
-	catch (\Exception $ex) {}
-	return false;
+	return $debug = $set->match($ip);
 }
 
-function querylog_maybe_enable() {
+function querylog_maybe_enable() : void {
 	if (querylog_semidebug()) {
 		\DB::enableQueryLog();
 
@@ -32,13 +35,13 @@ function querylog_maybe_enable() {
 	}
 }
 
-function querylog_replace($sql, $params) {
+function querylog_replace($sql, $params) : string {
 	return preg_replace_callback('#\?#', function() use (&$params) {
 		return "'" . array_shift($params) . "'";
 	}, $sql);
 }
 
-function querylog_get() {
+function querylog_get() : array {
 	$queries = \DB::getQueryLog();
 
 	$time = 0.0;
@@ -64,7 +67,7 @@ function querylog_get() {
 	return compact('all', 'doubles', 'models', 'time');
 }
 
-function querylog_html() {
+function querylog_html() : string {
 	if (!querylog_semidebug()) {
 		return '';
 	}
