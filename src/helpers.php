@@ -37,7 +37,8 @@ function querylog_maybe_enable() : void {
 
 function querylog_replace($sql, $params) : string {
 	return preg_replace_callback('#\?#', function() use (&$params) {
-		return "'" . array_shift($params) . "'";
+		$value = array_shift($params);
+		return $value === null ? 'NULL' : "'$value'";
 	}, $sql);
 }
 
