@@ -9,6 +9,13 @@
             "src/helpers.php"
         ]
     },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "rdx\\querylog\\QueryLogServiceProvider"
+            ]
+        }
+    },
     "license": "MIT",
     "authors": [
         {

@@ -6,36 +6,18 @@ function querylog_semidebug() : bool {
 	static $debug = null;
 	if (isset($debug)) return $debug;
 
-	$ips = config('app.querylog_ips');
-	if (!trim($ips)) return $debug = false;
+	$ips = config('querylog.ips', []);
+	if (!is_array($ips) || !count($ips)) return $debug = false;
 
 	if (empty($_SERVER['REMOTE_ADDR'])) return $debug = false;
 
-	$set = new IPSet(explode(',', $ips));
+	$set = new IPSet($ips);
 
 	$ip = $_SERVER['REMOTE_ADDR'];
 	return $debug = $set->match($ip);
 }
 
-function querylog_maybe_enable() : void {
-	if (querylog_semidebug()) {
-		\DB::enableQueryLog();
-
-		$GLOBALS['querylog_models'] = [];
-		\Event::listen("eloquent.retrieved: *", function($type, $args) {
-			$model = $args[0];
-			$class = get_class($model);
-			if (!isset($GLOBALS['querylog_models'][$class])) {
-				$GLOBALS['querylog_models'][$class] = 1;
-			}
-			else {
-				$GLOBALS['querylog_models'][$class]++;
-			}
-		});
-	}
-}
-
-function querylog_replace($sql, $params) : string {
+function querylog_replace(string $sql, array $params) : string {
 	return preg_replace_callback('#\?#', function() use (&$params) {
 		$value = array_shift($params);
 		return $value === null ? 'NULL' : "'$value'";
@@ -65,7 +47,9 @@ function querylog_get() : array {
 
 	$models = $GLOBALS['querylog_models'] ?? [];
 
-	return compact('all', 'doubles', 'models', 'time');
+	$services = $GLOBALS['querylog_services'] ?? [];
+
+	return compact('all', 'doubles', 'models', 'services', 'time');
 }
 
 function querylog_html() : string {
@@ -101,6 +85,15 @@ function querylog_html() : string {
 	}
 	$modelsHtml and $modelsHtml = "Models:<ul>$modelsHtml</ul>";
 
+	$services = number_format(array_sum($log['services']), 0, '.', '_');
+
+	$servicesHtml = '';
+	arsort($log['services'], SORT_NUMERIC);
+	foreach (array_slice($log['services'], 0, 5) as $class => $num) {
+		$servicesHtml .= '<li>' . $class . ' - ' . $num . '</li>';
+	}
+	$servicesHtml and $servicesHtml = "Top 5 services:<ul>$servicesHtml</ul>";
+
 	$ms = round($log['time']);
 
 	$mb = number_format(memory_get_peak_usage() / 1e6, 1);
@@ -109,8 +102,9 @@ function querylog_html() : string {
 
 	return "
 		<details class='querylog' style='font-family: monospace'>
-			<summary>$count queries, $doublesSummary doubles, $models models, in $ms ms | $mb MB | req <span id='querylog-request-time'>$reqTime</span> ms</summary>
+			<summary>$count queries, $doublesSummary doubles, in $ms ms | $models models | $services services | $mb MB | req <span id='querylog-request-time'>$reqTime</span> ms</summary>
 			$modelsHtml
+			$servicesHtml
 			$doublesHtml
 			$allHtml
 		</details>
