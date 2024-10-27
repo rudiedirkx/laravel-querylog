@@ -24,6 +24,15 @@ function querylog_replace(string $sql, array $params) : string {
 	}, $sql);
 }
 
+/**
+ * @return array{
+	all: list<string>,
+	doubles: array<string, int>,
+	models: array<string, int>,
+	services: array<string, int>,
+	time: float
+ }
+ */
 function querylog_get() : array {
 	$queries = \DB::getQueryLog();
 
