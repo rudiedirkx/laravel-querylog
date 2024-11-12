@@ -39,6 +39,8 @@ class QueryLogServiceProvider extends ServiceProvider {
 			if ($config['track_services']) {
 				$this->bootLogServices();
 			}
+
+			$GLOBALS['querylog_tracked'] = [];
 		}
 	}
 

@@ -1,6 +1,7 @@
 <?php
 
 use Wikimedia\IPSet;
+use rdx\querylog\QueryLogTiming;
 
 function querylog_semidebug() : bool {
 	static $debug = null;
@@ -15,6 +16,14 @@ function querylog_semidebug() : bool {
 
 	$ip = $_SERVER['REMOTE_ADDR'];
 	return $debug = $set->match($ip);
+}
+
+function querylog_track(string $message) : void {
+	$GLOBALS['querylog_tracked'][] = $message;
+}
+
+function querylog_time(string $message) : QueryLogTiming {
+	return new QueryLogTiming($message);
 }
 
 function querylog_replace(string $sql, array $params) : string {
@@ -58,7 +67,9 @@ function querylog_get() : array {
 
 	$services = $GLOBALS['querylog_services'] ?? [];
 
-	return compact('all', 'doubles', 'models', 'services', 'time');
+	$tracked = $GLOBALS['querylog_tracked'] ?? [];
+
+	return compact('all', 'doubles', 'models', 'services', 'tracked', 'time');
 }
 
 function querylog_html() : string {
@@ -103,6 +114,12 @@ function querylog_html() : string {
 	}
 	$servicesHtml and $servicesHtml = "Top 5 services:<ul>$servicesHtml</ul>";
 
+	$trackedHtml = '';
+	foreach ($log['tracked'] as $message) {
+		$trackedHtml .= '<li>' . $message . '</li>';
+	}
+	$trackedHtml and $trackedHtml = "Tracked:<ul>$trackedHtml</ul>";
+
 	$ms = round($log['time']);
 
 	$mb = number_format(memory_get_peak_usage() / 1e6, 1);
@@ -113,6 +130,7 @@ function querylog_html() : string {
 		<details class='querylog' style='font-family: monospace'>
 			<summary>$count queries, $doublesSummary doubles, in $ms ms | $models models | $services services | $mb MB | req <span id='querylog-request-time'>$reqTime</span> ms</summary>
 			$modelsHtml
+			$trackedHtml
 			$servicesHtml
 			$doublesHtml
 			$allHtml
