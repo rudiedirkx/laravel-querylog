@@ -16,7 +16,7 @@ class QueryLogTiming {
 		if ($message != '') {
 			$message = " | $message";
 		}
-		querylog_track(sprintf('[%.1f ms] %s %s', microtime(true) - $this->start, $this->message, $message));
+		querylog_track(sprintf('[%.2f s] %s %s', microtime(true) - $this->start, $this->message, $message));
 	}
 
 }
