@@ -24,6 +24,6 @@
         }
     ],
     "require": {
-        "wikimedia/ip-set": "^4.0 || ^3.1"
+        "wikimedia/ip-utils": "^5.0"
     }
 }
