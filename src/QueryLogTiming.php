@@ -4,37 +4,39 @@ namespace rdx\querylog;
 
 class QueryLogTiming {
 
-	protected float $start;
+	protected int $start;
 
 	public function __construct(
 		protected string $message,
 	) {
-		$this->start = microtime(true);
+		$this->start = hrtime(true);
+	}
+
+	public function get() : float {
+		return (hrtime(true) - $this->start) / 1e6;
 	}
 
 	public function dump(string $message = '') : void {
-		$sec = microtime(true) - $this->start;
-
 		if ($message != '') {
 			$message = " | $message";
 		}
 
-		dump($this->message . $message, 1000 * $sec);
+		dump($this->message . $message, $this->get());
 	}
 
 	public function track(string $message = '') : void {
-		$sec = microtime(true) - $this->start;
+		$ms = $this->get();
 
 		if ($message != '') {
 			$message = " | $message";
 		}
 
-		if ($sec > 0.1) {
-			$time = $sec;
+		if ($ms > 100) {
+			$time = $ms / 1000;
 			$timeUnit = 's';
 		}
 		else {
-			$time = $sec * 1000;
+			$time = $ms;
 			$timeUnit = 'ms';
 		}
 
