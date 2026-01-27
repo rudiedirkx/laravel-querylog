@@ -82,7 +82,7 @@ function querylog_html() : string {
 
 	$allHtml = '';
 	foreach ($log['all'] as $query) {
-		$allHtml .= "<li>$query</li>";
+		$allHtml .= '<li>' . e($query) . '</li>';
 	}
 	$allHtml and $allHtml = "All:<ul>$allHtml</ul>";
 
@@ -92,7 +92,7 @@ function querylog_html() : string {
 
 	$doublesHtml = '';
 	foreach ($log['doubles'] as $sql => $num) {
-		$doublesHtml .= '<li>' . sprintf('[% 2d x] %s', $num, $sql) . '</li>';
+		$doublesHtml .= '<li>' . sprintf('[% 2d x] %s', $num, e($sql)) . '</li>';
 	}
 	$doublesHtml and $doublesHtml = "Doubles:<ul>$doublesHtml</ul>";
 
@@ -101,7 +101,7 @@ function querylog_html() : string {
 	$modelsHtml = '';
 	arsort($log['models'], SORT_NUMERIC);
 	foreach ($log['models'] as $class => $num) {
-		$modelsHtml .= '<li>' . $class . ' - ' . $num . '</li>';
+		$modelsHtml .= '<li>' . e($class) . ' - ' . $num . '</li>';
 	}
 	$modelsHtml and $modelsHtml = "Models:<ul>$modelsHtml</ul>";
 
@@ -110,13 +110,13 @@ function querylog_html() : string {
 	$servicesHtml = '';
 	arsort($log['services'], SORT_NUMERIC);
 	foreach (array_slice($log['services'], 0, 5) as $class => $num) {
-		$servicesHtml .= '<li>' . $class . ' - ' . $num . '</li>';
+		$servicesHtml .= '<li>' . e($class) . ' - ' . $num . '</li>';
 	}
 	$servicesHtml and $servicesHtml = "Top 5 services:<ul>$servicesHtml</ul>";
 
 	$trackedHtml = '';
 	foreach ($log['tracked'] as $message) {
-		$trackedHtml .= '<li>' . $message . '</li>';
+		$trackedHtml .= '<li>' . e($message) . '</li>';
 	}
 	$trackedHtml and $trackedHtml = "Tracked:<ul>$trackedHtml</ul>";
 
