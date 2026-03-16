@@ -51,16 +51,16 @@ function querylog_get() : array {
 		$time += $query['time'];
 
 		$sql = preg_replace('#\s+#', ' ', trim($query['query']));
-		isset($uniques[$sql]) or $uniques[$sql] = 0;
-		$uniques[$sql]++;
+		$uniques[$sql] ??= [];
+		$uniques[$sql][] = $query['time'];
 
 		$sql = querylog_replace($sql, $query['bindings']);
 		$ms = number_format($query['time'], 1);
 		$all[] = "[$ms ms] $sql";
 	}
 
-	$doubles = array_filter($uniques, function($num) {
-		return $num > 1;
+	$doubles = array_filter($uniques, function($times) {
+		return count($times) > 1;
 	});
 
 	$models = $GLOBALS['querylog_models'] ?? [];
@@ -87,12 +87,12 @@ function querylog_html() : string {
 	$allHtml and $allHtml = "All:<ul>$allHtml</ul>";
 
 	$doublesUnique = count($log['doubles']);
-	$doublesTotal = array_sum($log['doubles']);
+	$doublesTotal = array_sum(array_map(count(...), $log['doubles']));
 	$doublesSummary = $doublesTotal ? "$doublesUnique / $doublesTotal" : '0';
 
 	$doublesHtml = '';
-	foreach ($log['doubles'] as $sql => $num) {
-		$doublesHtml .= '<li>' . sprintf('[% 2d x] %s', $num, e($sql)) . '</li>';
+	foreach ($log['doubles'] as $sql => $times) {
+		$doublesHtml .= '<li>' . sprintf('[% 2d x] [%.1f ms] %s', count($times), array_sum($times), e($sql)) . '</li>';
 	}
 	$doublesHtml and $doublesHtml = "Doubles:<ul>$doublesHtml</ul>";
 
